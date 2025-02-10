@@ -1,4 +1,4 @@
-name: Typecheck
+name: Lint
 
 on:
   push:
@@ -9,16 +9,16 @@ on:
       - main
 
 concurrency:
-  group: typecheck-${{ github.ref }}
+  group: lint-${{ github.ref_name }}  # Corrected from github.ref
   cancel-in-progress: true
 
 env:
   NODE_OPTIONS: --max_old_space_size=6144
-  DIRECTUS_URL: ${{ secrets.DIRECTUS_URL }}
+  DIRECTUS_URL: ${{ secrets.DIRECTUS_URL }}  # Ensure this secret is defined in the repository settings
 
 jobs:
-  typecheck:
-    name: Typecheck
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -27,7 +27,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: 18
 
       - name: Install pnpm
         run: npm install -g pnpm
@@ -35,5 +35,9 @@ jobs:
       - name: Prepare
         uses: ./.github/actions/prepare
 
-      - name: Run Typechecker
-        run: pnpm typecheck
+      - name: Install dependencies
+        shell: bash
+        run: pnpm install
+
+      - name: Run Linter
+        run: pnpm lint
