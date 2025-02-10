@@ -35,10 +35,9 @@ jobs:
       - name: Prepare
         uses: ./.github/actions/prepare
 
+      - name: Install dependencies
+        shell: bash
+        run: pnpm install
+
       - name: Run Linter
         run: pnpm lint
-          ${{ runner.os }}-pnpm-store-
-
-    - name: Install dependencies
-      shell: bash
-      run: pnpm install
