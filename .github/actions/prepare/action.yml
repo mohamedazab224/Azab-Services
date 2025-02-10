@@ -1,37 +1,42 @@
-name: Prepare
-description: Install and build the app
-inputs:
-  registry:
-    description: NPM registry to set up for auth
-    required: false
+name: Lint
 
-runs:
-  using: 'composite'
-  steps:
-    - name: Install Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18
-        registry-url: ${{ inputs.registry }}
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
-    - uses: pnpm/action-setup@v2
-      name: Install pnpm
-      id: pnpm-install
-      with:
-        run_install: false
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
 
-    - name: Get pnpm store directory
-      id: pnpm-cache
-      shell: bash
-      run: |
-        echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+env:
+  NODE_OPTIONS: --max_old_space_size=6144
+  DIRECTUS_URL: ${{ secrets.DIRECTUS_URL }}
 
-    - uses: actions/cache@v3
-      name: Setup pnpm cache
-      with:
-        path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
-        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-        restore-keys: |
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Prepare
+        uses: ./.github/actions/prepare
+
+      - name: Run Linter
+        run: pnpm lint
           ${{ runner.os }}-pnpm-store-
 
     - name: Install dependencies
