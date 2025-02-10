@@ -1,4 +1,4 @@
-name: Lint
+name: Typecheck
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - main
 
 concurrency:
-  group: lint-${{ github.ref }}
+  group: typecheck-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -17,8 +17,8 @@ env:
   DIRECTUS_URL: ${{ secrets.DIRECTUS_URL }}
 
 jobs:
-  lint:
-    name: Lint
+  typecheck:
+    name: Typecheck
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -27,15 +27,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '16'
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          run_install: false
+        run: npm install -g pnpm
 
       - name: Prepare
         uses: ./.github/actions/prepare
 
-      - name: Run Linter
-        run: pnpm lint
+      - name: Run Typechecker
+        run: pnpm typecheck
